@@ -52,7 +52,7 @@ class QueueServiceProvider extends BaseProvider
     {
         $this->app->bindShared('command.queue.autolisten', function($app)
         {
-            return new AutoListenCommand($app['queue.listener']);
+            return new AutoListenCommand($app);
         });
 
         $this->commands('command.queue.autolisten');

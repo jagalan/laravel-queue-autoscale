@@ -5,6 +5,7 @@ use Illuminate\Queue\Console\ListenCommand;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Jagalan\Queue\ChildListener;
 
 class AutoListenCommand extends ListenCommand{
 
@@ -14,6 +15,8 @@ class AutoListenCommand extends ListenCommand{
 	 * @var string
 	 */
 	protected $name = 'queue:autolisten';
+
+	protected $app = null;
 
 	/**
 	 * The console command description.
@@ -28,9 +31,10 @@ class AutoListenCommand extends ListenCommand{
 	 * @param  \Illuminate\Queue\Listener  $listener
 	 * @return void
 	 */
-	public function __construct(BaseListener $listener)
+	public function __construct($app)
 	{
-		parent::__construct($listener);
+		$this->_app = $app;
+		parent::__construct($app['queue.listener']);
 	}
 
 	/**
@@ -42,7 +46,7 @@ class AutoListenCommand extends ListenCommand{
 	{
 		//while(true)
 		//{
-			//$this->setListenerOptions();
+			$this->setListenerOptions();
 
 			$delay = $this->input->getOption('delay');
 
@@ -54,6 +58,8 @@ class AutoListenCommand extends ListenCommand{
 			$connection = $this->input->getArgument('connection');
 
 			$timeout = $this->input->getOption('timeout');
+
+			$MaxCyclesPerChild = $this->input->getOption('MaxCyclesPerChild');
 
 			// We need to get the right queue for the connection which is set in the queue
 			// configuration file for the application. We will pull it based on the set
@@ -69,12 +75,25 @@ class AutoListenCommand extends ListenCommand{
 					$connection, $queue, $delay, $memory, $timeout
 				);
 			} else {
-			     $this->listener->listen(
-					$connection, $queue, $delay, $memory, $timeout
+			    //Child process
+			    $app = $this->app;
+			    $childListener = new ChildListener($app['path.base']);
+			    $childListener->listen(
+					$connection, $queue, $delay, $memory, $timeout, $MaxCyclesPerChild
 				);
 			}
 			
 			//sleep(5);
 		//}
+	}
+
+	/**
+	 * Get the console command options.
+	 *
+	 * @return array
+	 */
+	protected function getOptions()
+	{
+		return array_merge(parent::getOptions(), array(array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', null)));
 	}
 }
