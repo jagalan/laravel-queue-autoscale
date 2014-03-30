@@ -70,8 +70,8 @@ class AutoListenCommand extends ListenCommand{
 			if ($pid == -1) {
 			     die('could not fork');
 			} else if ($pid) {
-			     // we are the parent
-			     $this->listener->listen(
+			    // we are the parent
+			    $this->listener->listen(
 					$connection, $queue, $delay, $memory, $timeout
 				);
 			} else {
