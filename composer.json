@@ -1,0 +1,20 @@
+{
+    "name": "jagalan/laravel-queue-autoscale",
+    "description": "Automatic scaling for Laravel queue listeners",
+    "authors": [
+        {
+            "name": "Juan Antonio Galán",
+            "email": "juan.galan.martinez@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/support": "4.0.x"
+    },
+    "autoload": {
+        "psr-0": {
+            "Jagalan\\Queue": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
