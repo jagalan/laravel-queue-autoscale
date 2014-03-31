@@ -7,6 +7,11 @@ class QueueManager extends BaseManager
 {
 	const COUNT_CACHE_KEY = 'Jagalan_Queue_Counter';
 
+	public function __construct($app)
+	{
+		return parent::__construct($app);
+	}
+
 	/**
 	 * Dynamically pass calls to the default connection.
 	 *
@@ -18,6 +23,8 @@ class QueueManager extends BaseManager
 	{
 		try
 		{
+			if (!\Cache::has(self::COUNT_CACHE_KEY)) \Cache::forever(self::COUNT_CACHE_KEY, 0);
+			\Log::info($method);
 			switch ($method)
 			{
 				case 'push':
@@ -27,7 +34,7 @@ class QueueManager extends BaseManager
 				case 'pop':
 					\Cache::decrement(self::COUNT_CACHE_KEY);
 				break;
-
+				default:
 			}
 		} catch (\LogicException $e) {}
 

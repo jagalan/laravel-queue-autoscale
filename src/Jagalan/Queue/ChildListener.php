@@ -37,7 +37,7 @@ class ChildListener extends BaseListener
 	public function runProcess(\Symfony\Component\Process\Process $process, $memory)
 	{
 		parent::runProcess($process, $memory);
-
+		\Cache::decrement(\Jagalan\Queue\QueueManager::COUNT_CACHE_KEY);
 		if (--$this->_maxExecutions === 0) 
 		{
 			\Log::info('Killing child');

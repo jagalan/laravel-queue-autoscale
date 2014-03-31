@@ -38,53 +38,48 @@ class AutoListenCommand extends ListenCommand{
 	}
 
 	/**
+	*	Forks the execution
+	*/
+	protected function _fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild)
+	{
+		$pid = pcntl_fork();
+		if ($pid === 0)
+		{
+		    //Child process
+		    $app = $this->app;
+		    $childListener = new ChildListener($app['path.base']);
+		    $childListener->listen(
+				$connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild
+			);
+		}
+		return $pid;
+	}
+
+	/**
 	 * Execute the console command.
 	 *
 	 * @return void
 	 */
 	public function fire()
 	{
-		//while(true)
-		//{
-			$this->setListenerOptions();
+		$this->setListenerOptions();
 
-			$delay = $this->input->getOption('delay');
+		$delay = $this->input->getOption('delay');
+		$memory = $this->input->getOption('memory');
+		$connection = $this->input->getArgument('connection');
+		$timeout = $this->input->getOption('timeout');
+		$maxCyclesPerChild = $this->input->getOption('MaxCyclesPerChild');
 
-			// The memory limit is the amount of memory we will allow the script to occupy
-			// before killing it and letting a process manager restart it for us, which
-			// is to protect us against any memory leaks that will be in the scripts.
-			$memory = $this->input->getOption('memory');
+		$queue = $this->getQueue($connection);
 
-			$connection = $this->input->getArgument('connection');
-
-			$timeout = $this->input->getOption('timeout');
-
-			$MaxCyclesPerChild = $this->input->getOption('MaxCyclesPerChild');
-
-			// We need to get the right queue for the connection which is set in the queue
-			// configuration file for the application. We will pull it based on the set
-			// connection being run for the queue operation currently being executed.
-			$queue = $this->getQueue($connection);
-
-			$pid = pcntl_fork();
-			if ($pid == -1) {
-			     die('could not fork');
-			} else if ($pid) {
-			    // we are the parent
-			    $this->listener->listen(
-					$connection, $queue, $delay, $memory, $timeout
-				);
-			} else {
-			    //Child process
-			    $app = $this->app;
-			    $childListener = new ChildListener($app['path.base']);
-			    $childListener->listen(
-					$connection, $queue, $delay, $memory, $timeout, $MaxCyclesPerChild
-				);
-			}
-			
-			//sleep(5);
-		//}
+		$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
+		// Infinite loop to handle child creation
+		while (true)
+		{
+			\Log::info(\Cache::get('Jagalan_Queue_Counter'));
+			sleep(1);
+			//$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
+		}
 	}
 
 	/**
