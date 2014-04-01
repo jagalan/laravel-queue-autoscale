@@ -76,7 +76,6 @@ class AutoListenCommand extends ListenCommand{
 		// Infinite loop to handle child creation
 		while (true)
 		{
-			\Log::info(\Cache::get('Jagalan_Queue_Counter'));
 			sleep(1);
 			//$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
 		}

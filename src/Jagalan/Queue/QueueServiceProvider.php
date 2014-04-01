@@ -2,6 +2,7 @@
 
 use Illuminate\Queue\QueueServiceProvider as BaseProvider;
 use Jagalan\Queue\Console\AutoListenCommand;
+use Jagalan\Queue\Console\QueueStatusCommand;
 
 /**
  * Class QueueServiceProvider
@@ -18,7 +19,8 @@ class QueueServiceProvider extends BaseProvider
     {   
         parent::register();
 
-        $this->registerAutoListenCommand();   
+        $this->registerAutoListenCommand();
+        $this->registerStatusQueueCommand();
     }
 
     /**
@@ -44,7 +46,7 @@ class QueueServiceProvider extends BaseProvider
     }
 
     /**
-     * Register the queue listener console command.
+     * Register the queue autolistener console command.
      *
      * @return void
      */
@@ -59,13 +61,28 @@ class QueueServiceProvider extends BaseProvider
     }
 
     /**
+     * Register the queue status console command.
+     *
+     * @return void
+     */
+    protected function registerStatusQueueCommand()
+    {
+        $this->app->bindShared('command.queue.status', function($app)
+        {
+            return new QueueStatusCommand($app);
+        });
+
+        $this->commands('command.queue.status');
+    }
+
+    /**
      * Get the services provided by the provider.
      *
      * @return array
      */
     public function provides()
     {
-        return array_merge(parent::provides(), array('queue.autolistener', 'command.queue.autolisten'));
+        return array_merge(parent::provides(), array('queue.autolistener', 'command.queue.autolisten', 'queue.status', 'command.queue.status'));
     }
 
 }
