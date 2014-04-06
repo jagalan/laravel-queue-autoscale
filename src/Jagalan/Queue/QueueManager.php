@@ -31,9 +31,9 @@ class QueueManager extends BaseManager
 				case 'later':
 					\Cache::increment(self::COUNT_CACHE_KEY);
 				break;
-				case 'pop':
-					\Cache::decrement(self::COUNT_CACHE_KEY);
-				break;
+				//case 'pop':
+				//	\Cache::decrement(self::COUNT_CACHE_KEY);
+				//break;
 				default:
 			}
 		} catch (\LogicException $e) {}

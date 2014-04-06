@@ -19,6 +19,7 @@ class ChildListener extends BaseListener
 	 * @param  string  $delay
 	 * @param  string  $memory
 	 * @param  int     $timeout
+	 * @param  int     $maxExecutions
 	 * @return void
 	 */
 	public function listen($connection, $queue, $delay, $memory, $timeout = 60, $maxExecutions = 100)

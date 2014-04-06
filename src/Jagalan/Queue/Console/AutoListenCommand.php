@@ -19,6 +19,11 @@ class AutoListenCommand extends ListenCommand{
 	protected $app = null;
 
 	/**
+	*  Child processes
+	*/
+	protected $_childs = array();
+
+	/**
 	 * The console command description.
 	 *
 	 * @var string
@@ -52,7 +57,26 @@ class AutoListenCommand extends ListenCommand{
 				$connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild
 			);
 		}
-		return $pid;
+		else
+		{
+			\Log::info('New child process, pid:'.$pid);
+			$this->_childs[$pid] = $pid;
+			return $pid;
+		}
+	}
+
+	protected function _checkChilds()
+	{
+		foreach ($this->_childs as $childPid)
+		{
+			\Log::info('Checking child: '.$childPid);
+			$childStatus = pcntl_waitpid($childPid, $status, WNOHANG);
+			if ($childStatus === $childPid)
+			{
+				\Log::info('Child '.$childPid.' has finished');
+				unset($this->_childs[$childPid]);
+			}
+		}
 	}
 
 	/**
@@ -69,15 +93,19 @@ class AutoListenCommand extends ListenCommand{
 		$connection = $this->input->getArgument('connection');
 		$timeout = $this->input->getOption('timeout');
 		$maxCyclesPerChild = $this->input->getOption('MaxCyclesPerChild');
+		$maxChildProcesses= $this->input->getOption('MaxChildProcesses');
 
 		$queue = $this->getQueue($connection);
 
-		$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
 		// Infinite loop to handle child creation
 		while (true)
 		{
+			$this->_checkChilds();
+			if (count($this->_childs) < $maxChildProcesses)
+			{
+				$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
+			}
 			sleep(1);
-			//$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
 		}
 	}
 
@@ -88,6 +116,10 @@ class AutoListenCommand extends ListenCommand{
 	 */
 	protected function getOptions()
 	{
-		return array_merge(parent::getOptions(), array(array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', null)));
+		return array_merge(parent::getOptions(), array(
+			array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', 5),
+			array('MaxChildProcesses', null, InputOption::VALUE_OPTIONAL, 'Maximum child to execute', 2),
+			//array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', null)
+			));
 	}
 }
