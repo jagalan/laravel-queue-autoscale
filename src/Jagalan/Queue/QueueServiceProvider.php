@@ -82,7 +82,7 @@ class QueueServiceProvider extends BaseProvider
      */
     public function provides()
     {
-        return array_merge(parent::provides(), array('queue.autolistener', 'command.queue.autolisten', 'queue.status', 'command.queue.status'));
+        return array_merge(parent::provides(), array('queue.autolistener', 'command.queue.autolisten'));
     }
 
 }

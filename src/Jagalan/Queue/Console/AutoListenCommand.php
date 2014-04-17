@@ -121,8 +121,7 @@ class AutoListenCommand extends ListenCommand{
 	{
 		return array_merge(parent::getOptions(), array(
 			array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', 5),
-			array('MaxChildProcesses', null, InputOption::VALUE_OPTIONAL, 'Maximum child to execute', 2),
-			//array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', null)
+			array('MaxChildProcesses', null, InputOption::VALUE_OPTIONAL, 'Maximum childs to execute', 2),
 			));
 	}
 }
