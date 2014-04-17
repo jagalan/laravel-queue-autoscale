@@ -20,29 +20,6 @@ class QueueServiceProvider extends BaseProvider
         parent::register();
 
         $this->registerAutoListenCommand();
-        $this->registerStatusQueueCommand();
-    }
-
-    /**
-     * Register the queue manager.
-     *
-     * @return void
-     */
-    protected function registerManager()
-    {
-        $me = $this;
-
-        $this->app->bindShared('queue', function($app) use ($me)
-        {
-            // Once we have an instance of the queue manager, we will register the various
-            // resolvers for the queue connectors. These connectors are responsible for
-            // creating the classes that accept queue configs and instantiate queues.
-            $manager = new QueueManager($app);
-
-            $me->registerConnectors($manager);
-
-            return $manager;
-        });
     }
 
     /**
@@ -58,21 +35,6 @@ class QueueServiceProvider extends BaseProvider
         });
 
         $this->commands('command.queue.autolisten');
-    }
-
-    /**
-     * Register the queue status console command.
-     *
-     * @return void
-     */
-    protected function registerStatusQueueCommand()
-    {
-        $this->app->bindShared('command.queue.status', function($app)
-        {
-            return new QueueStatusCommand($app);
-        });
-
-        $this->commands('command.queue.status');
     }
 
     /**
