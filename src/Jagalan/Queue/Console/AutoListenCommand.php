@@ -65,6 +65,9 @@ class AutoListenCommand extends ListenCommand{
 		}
 	}
 
+	/**
+	*	Removes the child processes that have terminated from the list 
+	*/
 	protected function _checkChilds()
 	{
 		foreach ($this->_childs as $childPid)

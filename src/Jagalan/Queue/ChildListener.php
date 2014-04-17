@@ -9,7 +9,7 @@ class ChildListener extends BaseListener
 	/*
 	* Controls the maximum number of jobs the listener will process
 	*/
-	protected $_maxExecutions = 100;
+	protected $_executions = 100;
 
 	/**
 	 * Listen to the given queue connection.
@@ -24,7 +24,7 @@ class ChildListener extends BaseListener
 	 */
 	public function listen($connection, $queue, $delay, $memory, $timeout = 60, $maxExecutions = 100)
 	{
-		$this->_maxExecutions = $maxExecutions;
+		$this->_executions = $maxExecutions;
 		return parent::listen($connection, $queue, $delay, $memory, $timeout);
 	}
 
@@ -39,9 +39,8 @@ class ChildListener extends BaseListener
 	{
 		parent::runProcess($process, $memory);
 		\Cache::decrement(\Jagalan\Queue\QueueManager::COUNT_CACHE_KEY);
-		if (--$this->_maxExecutions === 0) 
+		if (--$this->_executions === 0) 
 		{
-			\Log::info('Killing child');
 			exit;
 		}
 	}
