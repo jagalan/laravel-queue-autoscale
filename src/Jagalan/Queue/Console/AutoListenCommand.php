@@ -82,6 +82,32 @@ class AutoListenCommand extends ListenCommand{
 		}
 	}
 
+
+	/**
+	* Returns true if a new child needs to be created
+	*
+	*	@return Boolean	
+	*/
+	protected function _createNewChild($minMessages, $maxChildProcesses)
+	{
+		$sqsQueue = $this->_app['queue']->getSqs();
+		$queueList = $sqsQueue->listQueues();
+		foreach ($queueList->get('QueueUrls') as $queue)
+		{
+			$queueAttributes = $sqsQueue->getQueueAttributes(array(
+				'QueueUrl' => $queue,
+				'AttributeNames' => array('ApproximateNumberOfMessages')
+			))->get('Attributes');
+			$queueSize = $queueAttributes['ApproximateNumberOfMessages'];
+
+			if (($queueSize >= $minMessages) && (count($this->_childs) < $maxChildProcesses))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Execute the console command.
 	 *
@@ -97,14 +123,16 @@ class AutoListenCommand extends ListenCommand{
 		$timeout = $this->input->getOption('timeout');
 		$maxCyclesPerChild = $this->input->getOption('MaxCyclesPerChild');
 		$maxChildProcesses= $this->input->getOption('MaxChildProcesses');
+		$minMessages= $this->input->getOption('MinMessages');
 
 		$queue = $this->getQueue($connection);
-
 		// Infinite loop to handle child creation
 		while (true)
 		{
 			$this->_checkChilds();
-			if (count($this->_childs) < $maxChildProcesses)
+
+			//if (count($this->_childs) < $maxChildProcesses)
+			if ($this->_createNewChild($minMessages, $maxChildProcesses))
 			{
 				$this->_fork($connection, $queue, $delay, $memory, $timeout, $maxCyclesPerChild);
 			}
@@ -120,8 +148,9 @@ class AutoListenCommand extends ListenCommand{
 	protected function getOptions()
 	{
 		return array_merge(parent::getOptions(), array(
-			array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', 5),
-			array('MaxChildProcesses', null, InputOption::VALUE_OPTIONAL, 'Maximum childs to execute', 2),
+			array('MaxCyclesPerChild', null, InputOption::VALUE_OPTIONAL, 'How many cycles each child will run before dying', 10),
+			array('MaxChildProcesses', null, InputOption::VALUE_OPTIONAL, 'Maximum child processes to execute', 5),
+			array('MinMessages', null, InputOption::VALUE_OPTIONAL, 'Minimum messages in a queue to create a new child process', 25),
 			));
 	}
 }
