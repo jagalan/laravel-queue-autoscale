@@ -8,24 +8,24 @@ class ChildListener extends BaseListener
 {
 	/*
 	* Controls the maximum number of jobs the listener will process
+	*
+	* Unlimited by default
 	*/
-	protected $_executions = 100;
+	protected $_executions = -1;
 
 	/**
-	 * Listen to the given queue connection.
-	 *
-	 * @param  string  $connection
-	 * @param  string  $queue
-	 * @param  string  $delay
-	 * @param  string  $memory
-	 * @param  int     $timeout
-	 * @param  int     $maxExecutions
-	 * @return void
-	 */
-	public function listen($connection, $queue, $delay, $memory, $timeout = 60, $maxExecutions = 100)
+	* Sets the maximum number of executions
+	* @param  int  $maxExecutions
+	*/
+	public function setMaxExecutions($maxExecutions)
 	{
 		$this->_executions = $maxExecutions;
-		return parent::listen($connection, $queue, $delay, $memory, $timeout);
+	}
+
+	protected function _maxExecutionsExceeded()
+	{
+		if ($this->_executions === -1) return false;
+		return (--$this->_executions === 0);
 	}
 
 	/**
@@ -38,9 +38,9 @@ class ChildListener extends BaseListener
 	public function runProcess(\Symfony\Component\Process\Process $process, $memory)
 	{
 		parent::runProcess($process, $memory);
-		if (--$this->_executions === 0) 
+		if ($this->_maxExecutionsExceeded())
 		{
-			exit;
+			$this->stop();
 		}
 	}
 }
